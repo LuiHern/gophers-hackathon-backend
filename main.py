@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import boto3
 import io
 import base64
+import json
 
 app = Flask(__name__)
 
@@ -21,20 +22,22 @@ def extract_text():
 
     bytes = image_file.read()
 
-
-
     print("calling textract")
     response = textract.analyze_id(
-    DocumentPages=[
-        {
-            "Bytes": bytes
-        },
-    ]
-)
+        DocumentPages=[
+            {"Bytes": bytes},
+        ]
+    )
 
+    response_dict = {}
+    for elem in response["IdentityDocuments"][0]["IdentityDocumentFields"]:
+        response_dict[elem["Type"]["Text"]] = elem["ValueDetection"]["Text"]
 
-    print("returning")
-    return response["IdentityDocuments"][0]["IdentityDocumentFields"]
+    return response_dict
+        
+
+    # print("returning")
+    # return response["IdentityDocuments"][0]["IdentityDocumentFields"][0]
 
 
 @app.route("/ping")
